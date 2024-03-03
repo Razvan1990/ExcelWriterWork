@@ -131,3 +131,4 @@ if __name__ == "__main__":
     # print(get_dictionary_of_colours())
     write_to_excel()
     colour_excel()
+    print("Excel file has been modified!")
