@@ -68,8 +68,9 @@ def write_to_excel(excel_file=EXCEL_FILE_NAME, generation_folder=FOLDER_NAME_GEN
             os.mkdir(generation_folder)
         with open(file="report_misra.txt", mode="w", encoding="utf-8") as file:
             file.write(string_report_misra)
-        #move to generations
-        shutil.move(os.path.join(os.getcwd(), "report_misra.txt"), os.path.join(os.getcwd(), generation_folder, "report_misra.txt"))
+        # move to generations
+        shutil.move(os.path.join(os.getcwd(), "report_misra.txt"),
+                    os.path.join(os.getcwd(), generation_folder, "report_misra.txt"))
 
         '''
         now we will put the ticket where we have no 100% percent coverage in column N
@@ -84,9 +85,10 @@ def write_to_excel(excel_file=EXCEL_FILE_NAME, generation_folder=FOLDER_NAME_GEN
                     sheet_active["{}{}".format(columns_needed_argumentations[2], row)].value = test_coverage_ticket
                     sheet_active["{}{}".format(columns_needed_argumentations[2], row)].alignment = Alignment(
                         horizontal="center", wrap_text=True)
-                    sheet_active["{}{}".format(columns_needed_argumentations[2], row)].font = Font(name="Calibri", size=10)
+                    sheet_active["{}{}".format(columns_needed_argumentations[2], row)].font = Font(name="Calibri",
+                                                                                                   size=10)
                     sheet_active["{}{}".format(columns_needed_argumentations[2], row)].fill = PatternFill(
-                        fill_type="solid",start_color=dict_colours["WHITE"], end_color=dict_colours["WHITE"])
+                        fill_type="solid", start_color=dict_colours["WHITE"], end_color=dict_colours["WHITE"])
                     string_report_coverage += "Cell {}{} has been completed with {}\n".format(
                         columns_needed_argumentations[2], row, TICKET_COVERAGE)
         workbook.save(excel_file)
@@ -99,6 +101,33 @@ def write_to_excel(excel_file=EXCEL_FILE_NAME, generation_folder=FOLDER_NAME_GEN
         raise Exception("Close the excel file!")
 
 
+def colour_excel(excel_file=EXCEL_FILE_NAME, sheet_name=NEEDED_SHEET):
+    '''
+    we will just iterate through all the file and just check where we have red fill
+    :param excel_file:
+    :param sheet_name:
+    :return: the coloured excel file
+    '''
+    try:
+        dict_colours = get_dictionary_of_colours()
+        workbook = openpyxl.load_workbook(excel_file)
+        sheet_active = workbook[sheet_name]
+        number_max_columns = sheet_active.max_column - 1  # because last column is empty
+        number_max_rows = sheet_active.max_row - 1
+        for index_column in range(1, number_max_columns):
+            for index_row in range(1, number_max_rows):
+                if sheet_active.cell(index_row, index_column).fill.fgColor.rgb == dict_colours["RED"]:
+                    sheet_active.cell(index_row, index_column).fill = PatternFill(fill_type="solid",
+                                                                                  start_color=dict_colours["DIRTY_GREEN"],
+                                                                                  end_color=dict_colours["DIRTY_GREEN"])
+                    #make everything to be write in black
+                    sheet_active.cell(index_row, index_column). font = Font(name="Calibri", size=10, color="FF000000")
+        workbook.save(excel_file)
+    except:
+        raise Exception("Please close the excel file!")
+
+
 if __name__ == "__main__":
     # print(get_dictionary_of_colours())
     write_to_excel()
+    colour_excel()
