@@ -27,11 +27,13 @@ def get_dictionary_of_colours(excel_file=EXCEL_FILE_NAME, sheet_name=INTRODUCTIO
     red_color = sheet_active.cell(31, 6).fill.fgColor.rgb
     green_color = sheet_active.cell(29, 6).fill.fgColor.rgb
     dirty_green_color = sheet_active.cell(33, 6).fill.fgColor.rgb
+    grey_not_req_color = sheet_active.cell(30, 6).fill.fgColor.rgb
     normal_white_color = "00FFFFFF"
     dict_colors.update({"WHITE": normal_white_color})
     dict_colors.update({"RED": red_color})
     dict_colors.update({"GREEN": green_color})
     dict_colors.update({"DIRTY_GREEN": dirty_green_color})
+    dict_colors.update({"GREY": grey_not_req_color})
     return dict_colors
 
 
@@ -113,22 +115,51 @@ def colour_excel(excel_file=EXCEL_FILE_NAME, sheet_name=NEEDED_SHEET):
         workbook = openpyxl.load_workbook(excel_file)
         sheet_active = workbook[sheet_name]
         number_max_columns = sheet_active.max_column - 1  # because last column is empty
-        number_max_rows = sheet_active.max_row - 1
+        number_max_rows = sheet_active.max_row
         for index_column in range(1, number_max_columns):
             for index_row in range(1, number_max_rows):
                 if sheet_active.cell(index_row, index_column).fill.fgColor.rgb == dict_colours["RED"]:
                     sheet_active.cell(index_row, index_column).fill = PatternFill(fill_type="solid",
-                                                                                  start_color=dict_colours["DIRTY_GREEN"],
+                                                                                  start_color=dict_colours[
+                                                                                      "DIRTY_GREEN"],
                                                                                   end_color=dict_colours["DIRTY_GREEN"])
-                    #make everything to be write in black
-                    sheet_active.cell(index_row, index_column). font = Font(name="Calibri", size=10, color="FF000000")
+                    # make everything to be write in black
+                    sheet_active.cell(index_row, index_column).font = Font(name="Calibri", size=10, color="FF000000")
         workbook.save(excel_file)
     except:
         raise Exception("Please close the excel file!")
+
+
+def replace_not_applicable(excel_file=EXCEL_FILE_NAME, sheet_name=NEEDED_SHEET):
+    '''
+    THIS FUNCTION WILL BE USED JUST IN CASE WE HAVE A REPORT WHICH CONTAINS PIL
+    :param excel_file:
+    :param sheet_name:
+    :return: replacing the NA on column V with NR
+    '''
+    try:
+        dict_colours = get_dictionary_of_colours()
+        workbook = openpyxl.load_workbook(excel_file)
+        sheet_active = workbook[sheet_name]
+        column_needed = ["V"]
+        number_max_rows = sheet_active.max_row - 1
+        for column in column_needed:
+            for row in range(0, number_max_rows):
+                if sheet_active["{}{}".format(column, row)].value is None:
+                    continue
+                elif sheet_active["{}{}".format(column, row)].value == "NA":
+                    sheet_active["{}{}".format(column, row)].value = "NR"
+                    sheet_active["{}{}".format(column, row)].font = Font(name="Calibri", size=10, color="FF000000")
+                    sheet_active["{}{}".format(column, row)].fill = PatternFill(
+                        fill_type="solid", start_color=dict_colours["GREY"], end_color=dict_colours["GREY"])
+        workbook.save(excel_file)
+    except:
+        raise Exception("Please close the excel file")
 
 
 if __name__ == "__main__":
     # print(get_dictionary_of_colours())
     write_to_excel()
     colour_excel()
+    #replace_not_applicable
     print("Excel file has been modified!")
